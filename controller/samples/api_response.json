@@ -1,0 +1,11 @@
+{
+    "Id": 25,
+    "Name": "pikachu",
+    "Type": "electric",
+    "Abilities": {
+        "Attack": 55,
+        "Defense": 40,
+        "Hp": 35,
+        "Speed": 90
+    }
+}
