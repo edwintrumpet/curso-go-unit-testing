@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 )
@@ -73,4 +75,37 @@ func TestGetPokemonFromPokeApiInternalServerError(t *testing.T) {
 	_, err = GetPokemonFromPokeAPI(id)
 	c.NotNil(err)
 	c.EqualError(ErrPokeApiFailure, err.Error())
+}
+
+func TestGetPokemon(t *testing.T) {
+	c := require.New(t)
+
+	r, err := http.NewRequest(http.MethodGet, "/pokemon/{id}", nil)
+	c.NoError(err)
+
+	w := httptest.NewRecorder()
+
+	vars := map[string]string{
+		"id": "pikachu",
+	}
+
+	r = mux.SetURLVars(r, vars)
+
+	GetPokemon(w, r)
+
+	expectedBodyResponse, err := ioutil.ReadFile("samples/api_response.json")
+	c.NoError(err)
+
+	var expectedPokemon models.Pokemon
+
+	err = json.Unmarshal([]byte(expectedBodyResponse), &expectedPokemon)
+	c.NoError(err)
+
+	var currentPokemon models.Pokemon
+
+	err = json.Unmarshal([]byte(w.Body.Bytes()), &currentPokemon)
+	c.NoError(err)
+
+	c.Equal(http.StatusOK, w.Code)
+	c.Equal(expectedPokemon, currentPokemon)
 }
